@@ -37,7 +37,7 @@ class NewVisitorTest(unittest.TestCase):
         #When the user hits enter, the pages updates, and now the page
         #lists "1: Buy peacock feathers" as an item in a todo list
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(2)
         self.check_for_row_in_list_table("1: Buy peacock feathers")
 
         #There is still a text box inviting the user to add another item.
@@ -45,7 +45,7 @@ class NewVisitorTest(unittest.TestCase):
         inputbox = self.browser.find_element_by_id('id_new_item')
         inputbox.send_keys('Use peacock feathers to make a fly')
         inputbox.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(2)
 
         #the page updates again and now show both items on the users list
         self.check_for_row_in_list_table("1: Buy peacock feathers")
