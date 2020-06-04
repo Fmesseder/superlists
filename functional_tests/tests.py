@@ -34,7 +34,7 @@ class NewVisitorTest(LiveServerTestCase):
                     raise # -*- coding: utf-8 -*-
                 time.sleep(0.5)
 
-    def test_can_start_a_list_and_retrieve_later(self):
+    def test_can_start_a_list_for_one_user(self):
         #The user goes to check out the homepage of a new app
         self.browser.get(self.live_server_url)
 
@@ -66,11 +66,51 @@ class NewVisitorTest(LiveServerTestCase):
         self.wait_for_row_in_list_table("1: Buy peacock feathers")
         self.wait_for_row_in_list_table("2: Use peacock feathers to make a fly")
 
-        #The user wonders whether the site will remember the list.
-        #Then the user sees that the site has generated a unique URL for her
-        #-- there will be some more explanatory text here
-        self.fail('Finish the test')
+    def test_multiple_users_can_start_lists_at_different_urls(self):
+        #User starts a new to-do list
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
 
-        #the user visits the URL and the todo list is still there
+        #The user types "Buy peacock feathers" into a text box
+        inputbox.send_keys('Buy peacock feathers')
 
+        #When the user hits enter, the pages updates, and now the page
+        #lists "1: Buy peacock feathers" as an item in a todo list
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table("1: Buy peacock feathers")
+
+        #User notices that her list has a unique URL
+        user1_list_url = self.browser.current_url
+        self.assertRegex(user1_list_url, '/lists/.+')
+
+        #User 2 comes to the saved_items
+
+        ##We use a new browser session to make sure no information of user 1
+        ##is coming through from cookies, etc
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+
+        #user 2 visits the home page. There is no sign of user 1 list
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers',page_text)
+        self.assertNotIn('Use peacock feathers to make a fly',page_text)
+
+        #user 2 starts a new list
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+
+        self.wait_for_row_in_list_table("1: Buy milk")
+
+        #user 2 gets his own URL
+        user2_list_url = self.browser.current_url
+        self.assertRegex(user2_list_url, '/lists/.+')
+        self.assertNotEqual(user2_list_url, user1_list_url)
+
+        #again, there is no trace of user1 list
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers',page_text)
+        self.assertIn('Buy milk',page_text)
+        
         #The End
